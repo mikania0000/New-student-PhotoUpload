@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>鳳甲國中數位學生證照片上傳系統</title>
+    <!-- 引入 Tailwind CSS (快速美化) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入 Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#007BFF',
+                        secondary: '#FFD700',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { font-family: "Microsoft JhengHei", Arial, sans-serif; background-color: #f3f4f6; }
+        
+        /* 載入動畫 */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* 浮水印照片容器樣式 */
+        .watermark-container {
+            position: absolute;
+            bottom: 40px;
+            right: 40px;
+            z-index: 0;
+            opacity: 1;    /* 不透明 */
+            pointer-events: none; /* 讓滑鼠可以穿透圖片選取文字 */
+            transform: rotate(-5deg);
+            max-width: 40%;
+        }
+
+        /* 菲尼克斯文字標籤樣式 - 16px */
+        .phoenix-label {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #ff69b4; /* 粉紅色 */
+            font-family: "Comic Sans MS", "Microsoft JhengHei", cursive;
+            font-weight: bold;
+            font-size: 16px;
+            padding: 2px 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center py-6 px-4 relative text-[18px]">
+
+    <!-- 
+      🚨【重要設定】🚨 
+      請將下方的網址換成您 Google Apps Script 部署後的「網頁應用程式網址」
+      (結尾通常是 /exec)
+    -->
+    <script>
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPgLS-uAPYW1W2NUi1TpPh-9rJ9FbGCbtchXyWDd9QaoUvQHVnMq_j4mUYp0WxrjhZ/exec";
+    </script>
+
+    <!-- 標題區 -->
+    <header class="w-full max-w-5xl bg-primary text-white text-center py-6 rounded-t-xl shadow-lg mb-6 relative px-4">
+        <!-- 標題文字：桌機版 text-[46px] -->
+        <h1 class="text-3xl md:text-[46px] font-bold tracking-wide leading-tight">鳳甲國中數位學生證照片上傳系統</h1>
+    </header>
+
+    <!-- 主要內容區 -->
+    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <!-- 左側：注意事項與範例圖 (桌機佔 5 欄) -->
+        <section class="lg:col-span-5 flex flex-col gap-4">
+            <!-- 注意事項區塊 (含浮水印) -->
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-5 rounded shadow h-fit relative overflow-hidden min-h-[250px]">
+                <!-- 標題 -->
+                <h2 class="text-2xl font-bold text-gray-800 mb-3 flex items-center relative z-10">
+                    <i class="fas fa-exclamation-circle mr-2 text-yellow-600"></i> 注意事項
+                </h2>
+                
+                <!-- 文字內容 (text-[18px]) -->
+                <div id="reminder-content" class="space-y-2 text-[18px] text-gray-700 relative z-10 break-words" style="text-shadow: 0 0 5px rgba(255,255,255,0.8), 0 0 2px rgba(255,255,255,1);">
+                    <div class="flex justify-center items-center h-full text-gray-400 py-4">
+                        <div class="loader mr-2"></div> 載入中...
+                    </div>
+                </div>
+
+                <!-- 範例圖片 (絕對定位、不透明、右下角、包含文字) -->
+                <div class="watermark-container">
+                    <img id="sample-image" src="" alt="範例圖片" class="w-[200px] h-auto border-4 border-white shadow-md rounded-sm">
+                    <!-- 菲尼克斯文字 -->
+                    <div class="phoenix-label">菲尼克斯</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 右側：表單區 (桌機佔 7 欄) -->
+        <section class="lg:col-span-7 bg-white p-6 md:p-8 rounded-xl shadow-lg h-fit">
+            <form id="uploadForm" onsubmit="event.preventDefault();">
+                <div class="space-y-5">
+                    
+                    <!-- 年級 -->
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label class="text-[18px] font-medium text-gray-700 w-32 md:text-right md:mr-4 mb-1 md:mb-0">年級：</label>
+                        <select id="grade" class="flex-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[18px] bg-gray-50">
+                            <option value="7">7 年級</option>
+                            <option value="8">8 年級</option>
+                            <option value="9">9 年級</option>
+                        </select>
+                    </div>
+
+                    <!-- 班級 -->
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label class="text-[18px] font-medium text-gray-700 w-32 md:text-right md:mr-4 mb-1 md:mb-0">班級：</label>
+                        <select id="classNum" class="flex-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[18px] bg-gray-50">
+                            <!-- JS 填充 -->
+                        </select>
+                    </div>
+
+                    <!-- 座號 -->
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label class="text-[18px] font-medium text-gray-700 w-32 md:text-right md:mr-4 mb-1 md:mb-0">座號：</label>
+                        <select id="seatNum" class="flex-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[18px] bg-gray-50">
+                            <!-- JS 填充 -->
+                        </select>
+                    </div>
+
+                    <!-- 身分證後四碼 -->
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label class="text-[18px] font-medium text-gray-700 w-32 md:text-right md:mr-4 mb-1 md:mb-0">身分證後4碼：</label>
+                        <div class="relative flex-1 w-full">
+                            <input type="password" id="lastFourID" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[18px]" placeholder="請輸入後四碼">
+                            <i id="toggle-eye" class="fas fa-eye absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer text-xl" onclick="toggleIDVisibility()"></i>
+                        </div>
+                    </div>
+
+                    <!-- 上傳檔案 -->
+                    <div class="flex flex-col md:flex-row md:items-center">
+                        <label class="text-[18px] font-medium text-gray-700 w-32 md:text-right md:mr-4 mb-1 md:mb-0">照片檔案：</label>
+                        <input type="file" id="file" accept="image/*" class="flex-1 w-full p-2 border border-gray-300 rounded-lg bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 text-[18px]">
+                    </div>
+
+                    <!-- 按鈕群組 -->
+                    <div class="pt-6 flex flex-col sm:flex-row gap-4 justify-center">
+                        <button type="button" onclick="handleUpload()" id="btn-upload" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-[18px] transition duration-200 flex items-center justify-center w-full sm:w-auto shadow-md">
+                            <i class="fas fa-cloud-upload-alt mr-2"></i> 照片上傳
+                        </button>
+                        <button type="button" onclick="handleQuery()" id="btn-query" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg text-[18px] transition duration-200 flex items-center justify-center w-full sm:w-auto shadow-md">
+                            <i class="fas fa-search mr-2"></i> 結果查詢
+                        </button>
+                        <button type="button" onclick="clearForm()" id="btn-clear" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg text-[18px] transition duration-200 flex items-center justify-center w-full sm:w-auto shadow-md">
+                            <i class="fas fa-eraser mr-2"></i> 清除
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- 結果顯示區 -->
+            <div id="result-area" class="mt-6 hidden">
+                <div id="message-box" class="p-4 rounded-lg text-[18px] font-bold text-center border-2"></div>
+                
+                <!-- 查詢結果表格 -->
+                <div id="query-table-container" class="mt-4 overflow-x-auto hidden">
+                    <table class="w-full text-center border-collapse">
+                        <thead>
+                            <tr class="bg-primary text-white text-[18px]">
+                                <th class="p-3 border whitespace-nowrap">班級</th>
+                                <th class="p-3 border whitespace-nowrap">座號</th>
+                                <th class="p-3 border whitespace-nowrap">姓名</th>
+                                <th class="p-3 border whitespace-nowrap">學號</th>
+                                <th class="p-3 border whitespace-nowrap">註冊組審核</th>
+                            </tr>
+                        </thead>
+                        <tbody id="query-table-body" class="bg-white text-[18px]">
+                            <!-- JS 填充 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 頁腳 - 16px -->
+    <footer class="mt-10 text-gray-500 text-[16px]">
+        &copy; 2024 鳳甲國中 | 系統維護：教務處
+    </footer>
+
+    <!-- 全域忙碌遮罩 -->
+    <div id="loading-mask" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden flex flex-col justify-center items-center">
+        <div class="bg-white p-6 rounded-xl shadow-2xl flex flex-col items-center animate-bounce-in">
+            <div class="loader mb-4" style="width: 50px; height: 50px; border-width: 5px;"></div>
+            <div id="loading-text" class="text-xl font-bold text-gray-800">資料處理中...</div>
+            <div id="progress-text" class="text-blue-600 font-bold mt-2">0%</div>
+        </div>
+    </div>
+
+    <!-- 懸浮訊息 Toast -->
+    <div id="toast" class="fixed top-10 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg text-white font-bold shadow-xl z-[60] hidden transition-opacity duration-300 pointer-events-none text-[18px]"></div>
+
+    <script>
+        // ================= 初始化與設定 =================
+        let isBusy = false;
+        let progressInterval = null;
+
+        window.onload = function() {
+            initSelectOptions();
+            loadInitialData();
+        };
+
+        function initSelectOptions() {
+            const classSelect = document.getElementById("classNum");
+            const seatSelect = document.getElementById("seatNum");
+
+            // 班級 1-17
+            for (let i = 1; i <= 17; i++) {
+                let opt = document.createElement("option");
+                let val = ("0" + i).slice(-2);
+                opt.value = val;
+                opt.textContent = val + " 班";
+                classSelect.appendChild(opt);
+            }
+
+            // 座號 1-30
+            for (let j = 1; j <= 30; j++) {
+                let opt = document.createElement("option");
+                let val = ("0" + j).slice(-2);
+                opt.value = val;
+                opt.textContent = val + " 號";
+                seatSelect.appendChild(opt);
+            }
+        }
+
+        // ================= API 呼叫核心 =================
+        async function callApi(action, payload = {}) {
+            // 建構 POST 資料
+            const bodyData = JSON.stringify({ action: action, ...payload });
+            
+            try {
+                // 使用 fetch POST，Content-Type 設為 text/plain 避免 Google CORS 預檢 (Preflight)
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: bodyData,
+                    headers: { "Content-Type": "text/plain;charset=utf-8" }
+                });
+                return await response.json();
+            } catch (error) {
+                console.error("API Error:", error);
+                throw new Error("網路連線錯誤，請檢查網路或稍後再試");
+            }
+        }
+
+        // ================= 資料載入 =================
+        async function loadInitialData() {
+            try {
+                // 為了避免 GAS GET 快取問題，這裡也建議統一用 POST 取得資料
+                // 但保留 GET 參數相容性
+                const url = `${SCRIPT_URL}?action=getInitData`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.status === 'success') {
+                    // 設定圖片
+                    const img = document.getElementById('sample-image');
+                    img.src = data.imageUrl;
+                    // 浮水印模式下不需要顯示額外標籤，直接載入即可
+
+                    // 設定注意事項
+                    const reminderBox = document.getElementById('reminder-content');
+                    reminderBox.innerHTML = ''; 
+                    
+                    data.reminders.forEach(item => {
+                        const div = document.createElement('div');
+                        if (item.link) {
+                            div.innerHTML = `<a href="${item.link}" target="_blank" class="inline-block bg-pink-500 hover:bg-pink-600 text-white text-[16px] px-3 py-1 rounded transition mt-1"><i class="fas fa-external-link-alt"></i> 證件照詳細說明</a>`;
+                        } else {
+                            if (item.important) {
+                                // 調整重要事項字體大小為 14px
+                                div.className = "inline-block bg-red-600 text-white font-bold text-[14px] px-2 py-1 rounded mr-1 mb-1";
+                            } else {
+                                div.className = "text-gray-700 leading-relaxed block";
+                            }
+                            div.textContent = item.text;
+                        }
+                        reminderBox.appendChild(div);
+                    });
+                }
+            } catch (e) {
+                console.error(e);
+                document.getElementById('reminder-content').innerHTML = "<span class='text-red-500'>載入失敗，請重新整理頁面。</span>";
+            }
+        }
+
+        // ================= 表單動作 (上傳) =================
+        function handleUpload() {
+            if (isBusy) return;
+
+            const grade = document.getElementById("grade").value;
+            const classNum = document.getElementById("classNum").value;
+            const seatNum = document.getElementById("seatNum").value;
+            const lastFourID = document.getElementById("lastFourID").value;
+            const fileInput = document.getElementById("file");
+
+            if (!grade || !classNum || !seatNum || !lastFourID || !fileInput.files[0]) {
+                showToast("error", "請確認所有欄位是否已填寫並選擇照片！");
+                return;
+            }
+
+            setBusy(true, "照片上傳處理中...");
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                const fileData = e.target.result;
+                try {
+                    const result = await callApi('upload', {
+                        grade, classNum, seatNum, lastFourID, fileData
+                    });
+
+                    if (result.status === 'success') {
+                        showResultBox(true, result.message, 'success');
+                        showToast("success", "上傳成功！");
+                        // 成功後可選：清空檔案輸入框
+                        document.getElementById("file").value = "";
+                    } else {
+                        showResultBox(true, result.message, 'error');
+                        showToast("error", "上傳失敗");
+                    }
+                } catch (err) {
+                    showResultBox(true, "連線發生錯誤: " + err.message, 'error');
+                } finally {
+                    setBusy(false);
+                }
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+        }
+
+        // ================= 表單動作 (查詢) =================
+        async function handleQuery() {
+            if (isBusy) return;
+            
+            const grade = document.getElementById("grade").value;
+            const classNum = document.getElementById("classNum").value;
+            const seatNum = document.getElementById("seatNum").value;
+            const lastFourID = document.getElementById("lastFourID").value;
+
+            if (!grade || !classNum || !seatNum || !lastFourID) {
+                showToast("error", "請輸入完整的年級、班級、座號與身分證後四碼！");
+                return;
+            }
+
+            setBusy(true, "查詢資料中...");
+            clearResult();
+
+            try {
+                const result = await callApi('query', {
+                    grade, classNum, seatNum, lastFourID
+                });
+
+                if (result.status === 'success') {
+                    renderQueryTable(result.data);
+                    showToast("success", "查詢成功");
+                } else {
+                    showResultBox(true, result.message, 'info');
+                }
+            } catch (err) {
+                showToast("error", "查詢發生錯誤，請稍後再試");
+            } finally {
+                setBusy(false);
+            }
+        }
+
+        // ================= 畫面控制與動畫 =================
+        function setBusy(state, text = "處理中...") {
+            isBusy = state;
+            const mask = document.getElementById('loading-mask');
+            const progress = document.getElementById('progress-text');
+            const loadText = document.getElementById('loading-text');
+
+            if (state) {
+                mask.classList.remove('hidden');
+                loadText.innerText = text;
+                progress.innerText = "0%";
+                
+                // 模擬進度條
+                let p = 0;
+                clearInterval(progressInterval);
+                progressInterval = setInterval(() => {
+                    if (p < 90) {
+                        p += Math.floor(Math.random() * 5) + 1;
+                        progress.innerText = p + "%";
+                    }
+                }, 200);
+            } else {
+                progress.innerText = "100%";
+                clearInterval(progressInterval);
+                setTimeout(() => { mask.classList.add('hidden'); }, 300);
+            }
+        }
+
+        function showToast(type, msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `fixed top-10 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg text-white font-bold shadow-xl z-[60] transition-opacity duration-300 pointer-events-none text-[18px]`;
+            
+            if (type === 'success') toast.classList.add('bg-green-600');
+            else if (type === 'error') toast.classList.add('bg-red-600');
+            else toast.classList.add('bg-blue-600');
+
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 3000);
+        }
+
+        function showResultBox(show, text, type) {
+            const area = document.getElementById('result-area');
+            const box = document.getElementById('message-box');
+            
+            if (!show) {
+                area.classList.add('hidden');
+                return;
+            }
+            area.classList.remove('hidden');
+            box.innerHTML = text;
+            
+            box.className = "p-4 rounded-lg text-[18px] font-bold text-center border-2 mb-4 ";
+            if (type === 'success') box.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+            else if (type === 'error') box.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+            else box.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-700');
+            
+            area.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function renderQueryTable(data) {
+            const area = document.getElementById('result-area');
+            const tableContainer = document.getElementById('query-table-container');
+            const tbody = document.getElementById('query-table-body');
+            
+            area.classList.remove('hidden');
+            tableContainer.classList.remove('hidden');
+            
+            // 根據審核狀態顯示不同顏色
+            let statusClass = "text-gray-800";
+            if (data.reviewStatus.includes("合格") && !data.reviewStatus.includes("不")) statusClass = "text-green-600 font-bold";
+            else if (data.reviewStatus.includes("未上傳") || data.reviewStatus.includes("不合格")) statusClass = "text-red-600 font-bold";
+            else if (data.reviewStatus.includes("審核中")) statusClass = "text-blue-600 font-bold";
+
+            tbody.innerHTML = `
+                <tr class="hover:bg-gray-50 border-b">
+                    <td class="p-3 border">${data.classNum}</td>
+                    <td class="p-3 border">${data.seatNum}</td>
+                    <td class="p-3 border">${data.name}</td>
+                    <td class="p-3 border">${data.studentNumber}</td>
+                    <td class="p-3 border ${statusClass}">${data.reviewStatus}</td>
+                </tr>
+            `;
+            
+            area.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function toggleIDVisibility() {
+            const input = document.getElementById("lastFourID");
+            const icon = document.getElementById("toggle-eye");
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.remove("fa-eye");
+                icon.classList.add("fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.remove("fa-eye-slash");
+                icon.classList.add("fa-eye");
+            }
+        }
+
+        function clearResult() {
+            document.getElementById('result-area').classList.add('hidden');
+            document.getElementById('query-table-container').classList.add('hidden');
+            document.getElementById('message-box').innerText = "";
+        }
+
+        function clearForm() {
+            if (isBusy) return;
+            document.getElementById("uploadForm").reset();
+            document.getElementById("grade").selectedIndex = 0;
+            document.getElementById("classNum").innerHTML = ""; // 觸發重置
+            initSelectOptions();
+            clearResult();
+        }
+    </script>
+</body>
+</html>
