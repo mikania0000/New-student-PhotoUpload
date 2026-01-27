@@ -82,11 +82,11 @@
         <h1 class="text-3xl md:text-[46px] font-bold tracking-wide leading-tight">鳳甲國中數位學生證照片上傳系統</h1>
     </header>
 
-    <!-- 主要內容區 -->
-    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- 主要內容區：改為 flex-col 讓上下區塊在桌機也垂直排列 -->
+    <main class="w-full max-w-5xl flex flex-col gap-6">
         
-        <!-- 左側：注意事項與範例圖 (桌機佔 5 欄) -->
-        <section class="lg:col-span-5 flex flex-col gap-4">
+        <!-- 上方區塊：注意事項與範例圖 -->
+        <section class="w-full flex flex-col gap-4">
             <!-- 注意事項區塊 (含浮水印) -->
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-5 rounded shadow h-fit relative overflow-hidden min-h-[250px]">
                 <!-- 標題 -->
@@ -110,8 +110,8 @@
             </div>
         </section>
 
-        <!-- 右側：表單區 (桌機佔 7 欄) -->
-        <section class="lg:col-span-7 bg-white p-6 md:p-8 rounded-xl shadow-lg h-fit">
+        <!-- 下方區塊：表單區 -->
+        <section class="w-full bg-white p-6 md:p-8 rounded-xl shadow-lg h-fit">
             <form id="uploadForm" onsubmit="event.preventDefault();">
                 <div class="space-y-5">
                     
@@ -291,7 +291,7 @@
                         } else {
                             if (item.important) {
                                 // 調整重要事項字體大小為 14px
-                                div.className = "inline-block bg-red-600 text-white font-bold text-[14px] px-2 py-1 rounded mr-1 mb-1";
+                                div.className = "inline-block bg-red-600 text-white font-bold text-[16px] px-2 py-1 rounded mr-1 mb-1";
                             } else {
                                 div.className = "text-gray-700 leading-relaxed block";
                             }
