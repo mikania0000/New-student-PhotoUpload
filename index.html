@@ -79,8 +79,15 @@
     <header class="w-full max-w-5xl bg-primary text-white text-center py-6 rounded-t-xl shadow-lg mb-6 relative px-4 flex justify-center items-center">
         <h1 class="text-3xl md:text-[46px] font-bold tracking-wide leading-tight">鳳甲國中數位學生證照片上傳系統</h1>
         <!-- 管理員狀態指示器 (隱藏，授權後顯示) -->
-        <div id="admin-badge" class="absolute right-4 top-1/2 transform -translate-y-1/2 hidden bg-green-500 text-white text-sm px-3 py-1 rounded-full shadow cursor-pointer hover:bg-green-600 transition" onclick="logoutAdmin()" title="點擊登出管理員">
-            <i class="fas fa-user-shield"></i> 管理員已登入
+        <div id="admin-badge" class="absolute right-4 top-1/2 transform -translate-y-1/2 hidden bg-green-600 text-white text-sm px-3 py-1.5 rounded-full shadow-md flex items-center gap-2 border border-white/20">
+            <span class="flex items-center gap-1.5">
+                <i class="fas fa-user-shield"></i>
+                <span id="admin-email-text" class="hidden sm:inline"></span>
+                <span class="sm:hidden">管理員</span>
+            </span>
+            <button onclick="logoutAdmin()" class="bg-white/20 hover:bg-white/40 px-2 py-0.5 rounded text-xs transition border border-white/30 font-bold">
+                登出
+            </button>
         </div>
     </header>
 
@@ -101,6 +108,7 @@
 
                 <!-- 範例圖片 -->
                 <div class="watermark-container">
+                    
                     <img id="sample-image" src="" alt="範例圖片" class="w-[200px] h-auto border-4 border-white shadow-md rounded-sm">
                     <div class="phoenix-label">菲尼克斯</div>
                 </div>
@@ -137,7 +145,10 @@
                     <!-- 步驟 2: 密碼 -->
                     <div class="mb-6">
                         <label class="block text-sm font-bold text-gray-700 mb-2">2. 系統操作密碼</label>
-                        <input type="password" id="admin-pwd-input" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[18px]" placeholder="請輸入密碼">
+                        <div class="relative w-full">
+                            <input type="password" id="admin-pwd-input" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[18px]" placeholder="請輸入密碼">
+                            <i id="toggle-admin-eye" class="fas fa-eye absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer text-xl" onclick="toggleAdminPwdVisibility()"></i>
+                        </div>
                     </div>
 
                     <div class="flex justify-end gap-3">
@@ -286,9 +297,10 @@
         function checkAdminStatus() {
             const email = localStorage.getItem('adminEmail');
             const badge = document.getElementById('admin-badge');
+            const emailText = document.getElementById('admin-email-text');
             if(email) {
                 badge.classList.remove('hidden');
-                badge.innerHTML = `<i class="fas fa-user-shield"></i> 管理員 (${email}) - 點擊登出`;
+                emailText.textContent = email;
             } else {
                 badge.classList.add('hidden');
             }
@@ -309,6 +321,8 @@
                 document.getElementById('google-btn-container').classList.remove('hidden');
                 document.getElementById('google-auth-success').classList.add('hidden');
                 document.getElementById('admin-pwd-input').value = "";
+                document.getElementById('admin-pwd-input').type = "password";
+                document.getElementById('toggle-admin-eye').classList.replace("fa-eye-slash", "fa-eye");
                 tempAdminEmail = null;
                 
                 showToast("info", "已登出管理員身分");
@@ -407,6 +421,8 @@
                     document.getElementById('google-btn-container').classList.remove('hidden');
                     document.getElementById('google-auth-success').classList.add('hidden');
                     document.getElementById('admin-pwd-input').value = "";
+                    document.getElementById('admin-pwd-input').type = "password";
+                    document.getElementById('toggle-admin-eye').classList.replace("fa-eye-slash", "fa-eye");
                     tempAdminEmail = null;
 
                     alert("⚠️ 雙重授權已失效或密碼錯誤！請重新進行驗證。");
@@ -570,7 +586,7 @@
         function showToast(type, msg) {
             const toast = document.getElementById('toast');
             toast.textContent = msg;
-            toast.className = `fixed top-10 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg text-white font-bold shadow-xl z-[60] transition-opacity duration-300 pointer-events-none text-[18px]`;
+            toast.className = `fixed top-10 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg text-white font-bold shadow-xl z-[60] hidden transition-opacity duration-300 pointer-events-none text-[18px]`;
             
             if (type === 'success') toast.classList.add('bg-green-600');
             else if (type === 'error') toast.classList.add('bg-red-600');
@@ -623,6 +639,18 @@
             `;
             
             area.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function toggleAdminPwdVisibility() {
+            const input = document.getElementById("admin-pwd-input");
+            const icon = document.getElementById("toggle-admin-eye");
+            if (input.type === "password") {
+                input.type = "text";
+                icon.classList.replace("fa-eye", "fa-eye-slash");
+            } else {
+                input.type = "password";
+                icon.classList.replace("fa-eye-slash", "fa-eye");
+            }
         }
 
         function toggleIDVisibility() {
