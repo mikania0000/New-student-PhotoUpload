@@ -4,66 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>鳳甲國中數位學生證照片上傳系統</title>
-    <!-- 引入 Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- 引入 Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- 引入 Google Identity Services -->
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     
     <script>
         tailwind.config = {
             theme: {
-                extend: {
-                    colors: {
-                        primary: '#007BFF',
-                        secondary: '#FFD700',
-                    }
-                }
+                extend: { colors: { primary: '#007BFF', secondary: '#FFD700', } }
             }
         }
     </script>
 
     <style>
         body { font-family: "Microsoft JhengHei", Arial, sans-serif; background-color: #f3f4f6; }
-        
-        /* 載入動畫 */
         .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3498db;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
+            border: 4px solid #f3f3f3; border-top: 4px solid #3498db;
+            border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* 浮水印照片容器樣式 */
         .watermark-container {
-            position: absolute;
-            bottom: 40px;
-            right: 40px;
-            z-index: 0;
-            opacity: 1;
-            pointer-events: none;
-            transform: rotate(-5deg);
-            max-width: 40%;
+            position: absolute; bottom: 40px; right: 40px; z-index: 0;
+            opacity: 1; pointer-events: none; transform: rotate(-5deg); max-width: 40%;
         }
-
-        /* 菲尼克斯文字標籤樣式 */
         .phoenix-label {
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.9);
-            color: #ff69b4;
-            font-family: "Comic Sans MS", "Microsoft JhengHei", cursive;
-            font-weight: bold;
-            font-size: 16px;
-            padding: 2px 10px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-            letter-spacing: 1px;
+            position: absolute; bottom: 10px; right: 10px; background: rgba(255, 255, 255, 0.9);
+            color: #ff69b4; font-family: "Comic Sans MS", "Microsoft JhengHei", cursive;
+            font-weight: bold; font-size: 16px; padding: 2px 10px;
+            border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.15); letter-spacing: 1px;
         }
     </style>
 </head>
@@ -72,43 +40,39 @@
     <!-- 🚨 替換成您的 Google Apps Script 網址 🚨 -->
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwPgLS-uAPYW1W2NUi1TpPh-9rJ9FbGCbtchXyWDd9QaoUvQHVnMq_j4mUYp0WxrjhZ/exec";
+        // Google Client ID (公開資訊，安全無虞。但請記得在 GCP 控制台加入 Github Pages 的網域白名單)
         const GOOGLE_CLIENT_ID = "553016940521-araovlp30ctbqn6um5rr49q3es5jm4jg.apps.googleusercontent.com";
     </script>
 
     <!-- 標題區 -->
     <header class="w-full max-w-5xl bg-primary text-white text-center py-6 rounded-t-xl shadow-lg mb-6 relative px-4 flex justify-center items-center">
         <h1 class="text-3xl md:text-[46px] font-bold tracking-wide leading-tight">鳳甲國中數位學生證照片上傳系統</h1>
-        <!-- 管理員狀態指示器 (隱藏，授權後顯示) -->
-        <div id="admin-badge" class="absolute right-4 top-1/2 transform -translate-y-1/2 hidden bg-green-600 text-white text-sm px-3 py-1.5 rounded-full shadow-md flex items-center gap-2 border border-white/20">
+        
+        <!-- 管理員狀態指示器 (低調設計，授權後顯示) -->
+        <div id="admin-badge" class="absolute right-4 top-1/2 transform -translate-y-1/2 hidden bg-black/20 text-white/90 text-sm px-3 py-1.5 rounded-full shadow-inner flex items-center gap-2 backdrop-blur-sm border border-white/10">
             <span class="flex items-center gap-1.5">
-                <i class="fas fa-user-shield"></i>
-                <span id="admin-email-text" class="hidden sm:inline"></span>
-                <span class="sm:hidden">管理員</span>
+                <i class="fas fa-user-check text-xs"></i>
+                <span id="admin-email-text" class="hidden sm:inline text-xs"></span>
             </span>
-            <button onclick="logoutAdmin()" class="bg-white/20 hover:bg-white/40 px-2 py-0.5 rounded text-xs transition border border-white/30 font-bold">
+            <button onclick="logoutAdmin()" class="hover:bg-white/20 px-2 py-0.5 rounded text-xs transition border border-transparent hover:border-white/30" title="登出管理員">
                 登出
             </button>
         </div>
     </header>
 
     <main class="w-full max-w-5xl flex flex-col gap-6">
-        
         <!-- 上方區塊：注意事項與範例圖 -->
         <section class="w-full flex flex-col gap-4">
             <div class="bg-yellow-50 border-l-4 border-yellow-400 p-5 rounded shadow h-fit relative overflow-hidden min-h-[250px]">
                 <h2 class="text-2xl font-bold text-gray-800 mb-3 flex items-center relative z-10">
                     <i class="fas fa-exclamation-circle mr-2 text-yellow-600"></i> 注意事項
                 </h2>
-                
                 <div id="reminder-content" class="space-y-2 text-[18px] text-gray-700 relative z-10 break-words" style="text-shadow: 0 0 5px rgba(255,255,255,0.8), 0 0 2px rgba(255,255,255,1);">
                     <div class="flex justify-center items-center h-full text-gray-400 py-4">
                         <div class="loader mr-2"></div> 載入中...
                     </div>
                 </div>
-
-                <!-- 範例圖片 -->
                 <div class="watermark-container">
-                    
                     <img id="sample-image" src="" alt="範例圖片" class="w-[200px] h-auto border-4 border-white shadow-md rounded-sm">
                     <div class="phoenix-label">菲尼克斯</div>
                 </div>
@@ -118,50 +82,36 @@
         <!-- 表單區 -->
         <section class="w-full bg-white p-6 md:p-8 rounded-xl shadow-lg h-fit relative">
             
-            <!-- 管理員雙重認證 Modal -->
+            <!-- 管理員 Google 授權 Modal -->
             <div id="admin-auth-modal" class="fixed inset-0 w-full h-full bg-gray-900 bg-opacity-60 z-[100] hidden flex flex-col justify-center items-center backdrop-blur-sm">
-                <div class="bg-white w-11/12 max-w-md p-6 rounded-xl shadow-2xl transform transition-all">
-                    <h3 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2"><i class="fas fa-shield-alt text-blue-500 mr-2"></i>管理員雙重認證</h3>
-                    <p class="mb-4 text-sm text-gray-600">系統管理員操作必須完成 Google 帳號授權與密碼驗證。</p>
+                <div class="bg-white w-11/12 max-w-md p-6 rounded-xl shadow-2xl transform transition-all relative">
+                    <button onclick="cancelAdminLogin()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                    <h3 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2"><i class="fas fa-shield-halved text-primary mr-2"></i>系統管理員授權</h3>
+                    <p class="mb-6 text-sm text-gray-600">偵測到特殊權限操作，請使用具有白名單權限的 Google 帳號進行登入驗證。</p>
                     
-                    <!-- 步驟 1: Google 授權 -->
-                    <div class="mb-5">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">1. Google 帳號授權</label>
-                        <div id="g_id_onload"
-                             data-client_id="553016940521-araovlp30ctbqn6um5rr49q3es5jm4jg.apps.googleusercontent.com"
-                             data-context="signin"
-                             data-ux_mode="popup"
-                             data-callback="handleCredentialResponse"
-                             data-auto_prompt="false">
-                        </div>
-                        <div id="google-btn-container" class="flex justify-center bg-gray-50 py-2 rounded border border-gray-200">
-                            <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div>
-                        </div>
-                        <div id="google-auth-success" class="hidden mt-2 text-green-600 font-bold text-sm flex items-center justify-center bg-green-50 py-2 rounded border border-green-200">
-                            <i class="fas fa-check-circle mr-1"></i> 已授權：<span id="auth-email-display"></span>
-                        </div>
+                    <div id="g_id_onload"
+                         data-client_id="553016940521-araovlp30ctbqn6um5rr49q3es5jm4jg.apps.googleusercontent.com"
+                         data-context="signin"
+                         data-ux_mode="popup"
+                         data-callback="onGoogleSignIn"
+                         data-auto_prompt="false">
+                    </div>
+                    
+                    <div id="google-btn-container" class="flex justify-center bg-gray-50 py-4 rounded-lg border border-gray-200">
+                        <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="center"></div>
                     </div>
 
-                    <!-- 步驟 2: 密碼 -->
-                    <div class="mb-6">
-                        <label class="block text-sm font-bold text-gray-700 mb-2">2. 系統操作密碼</label>
-                        <div class="relative w-full">
-                            <input type="password" id="admin-pwd-input" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[18px]" placeholder="請輸入密碼">
-                            <i id="toggle-admin-eye" class="fas fa-eye absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 cursor-pointer text-xl" onclick="toggleAdminPwdVisibility()"></i>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-end gap-3">
-                        <button onclick="cancelAdminLogin()" class="px-5 py-2 text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg font-medium transition">取消</button>
-                        <button onclick="confirmAdminLogin()" class="px-5 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium shadow-md transition">確認送出</button>
+                    <div id="auth-loading" class="hidden flex-col items-center justify-center py-4 text-primary font-bold">
+                        <div class="loader mb-2"></div> 正在與伺服器驗證權限...
                     </div>
                 </div>
             </div>
 
             <form id="uploadForm" onsubmit="event.preventDefault();">
                 <div class="space-y-5">
-                    
-                    <!-- 年級 -->
+                    <!-- 年級/班級/座號/身分證/照片欄位 (同原版) -->
                     <div class="flex flex-col md:flex-row md:items-center">
                         <label class="text-[18px] font-medium text-gray-700 w-32 md:text-right md:mr-4 mb-1 md:mb-0">年級：</label>
                         <select id="grade" class="flex-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[18px] bg-gray-50">
@@ -171,19 +121,16 @@
                         </select>
                     </div>
 
-                    <!-- 班級 -->
                     <div class="flex flex-col md:flex-row md:items-center">
                         <label class="text-[18px] font-medium text-gray-700 w-32 md:text-right md:mr-4 mb-1 md:mb-0">班級：</label>
                         <select id="classNum" class="flex-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[18px] bg-gray-50"></select>
                     </div>
 
-                    <!-- 座號 -->
                     <div class="flex flex-col md:flex-row md:items-center">
                         <label class="text-[18px] font-medium text-gray-700 w-32 md:text-right md:mr-4 mb-1 md:mb-0">座號：</label>
                         <select id="seatNum" class="flex-1 w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary text-[18px] bg-gray-50"></select>
                     </div>
 
-                    <!-- 身分證後四碼 -->
                     <div class="flex flex-col md:flex-row md:items-center">
                         <label class="text-[18px] font-medium text-gray-700 w-32 md:text-right md:mr-4 mb-1 md:mb-0">身分證後4碼：</label>
                         <div class="relative flex-1 w-full">
@@ -192,32 +139,27 @@
                         </div>
                     </div>
 
-                    <!-- 上傳檔案 -->
                     <div class="flex flex-col md:flex-row md:items-center">
                         <label class="text-[18px] font-medium text-gray-700 w-32 md:text-right md:mr-4 mb-1 md:mb-0">照片檔案：</label>
                         <input type="file" id="file" accept="image/*" class="flex-1 w-full p-2 border border-gray-300 rounded-lg bg-gray-50 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 text-[18px]">
                     </div>
 
-                    <!-- 按鈕群組 -->
                     <div class="pt-6 flex flex-col sm:flex-row gap-4 justify-center">
-                        <button type="button" onclick="initiateAction('upload')" id="btn-upload" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-[18px] transition duration-200 flex items-center justify-center w-full sm:w-auto shadow-md">
+                        <button type="button" onclick="checkActionAuth('upload')" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-[18px] transition duration-200 flex items-center justify-center w-full sm:w-auto shadow-md">
                             <i class="fas fa-cloud-upload-alt mr-2"></i> 照片上傳
                         </button>
-                        <button type="button" onclick="initiateAction('query')" id="btn-query" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg text-[18px] transition duration-200 flex items-center justify-center w-full sm:w-auto shadow-md">
+                        <button type="button" onclick="checkActionAuth('query')" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg text-[18px] transition duration-200 flex items-center justify-center w-full sm:w-auto shadow-md">
                             <i class="fas fa-search mr-2"></i> 結果查詢
                         </button>
-                        <button type="button" onclick="clearForm()" id="btn-clear" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg text-[18px] transition duration-200 flex items-center justify-center w-full sm:w-auto shadow-md">
+                        <button type="button" onclick="clearForm()" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-6 rounded-lg text-[18px] transition duration-200 flex items-center justify-center w-full sm:w-auto shadow-md">
                             <i class="fas fa-eraser mr-2"></i> 清除
                         </button>
                     </div>
                 </div>
             </form>
 
-            <!-- 結果顯示區 -->
             <div id="result-area" class="mt-6 hidden">
                 <div id="message-box" class="p-4 rounded-lg text-[18px] font-bold text-center border-2"></div>
-                
-                <!-- 查詢結果表格 -->
                 <div id="query-table-container" class="mt-4 overflow-x-auto hidden">
                     <table class="w-full text-center border-collapse">
                         <thead>
@@ -229,21 +171,22 @@
                                 <th class="p-3 border whitespace-nowrap">註冊組審核</th>
                             </tr>
                         </thead>
-                        <tbody id="query-table-body" class="bg-white text-[18px]">
-                            <!-- JS 填充 -->
-                        </tbody>
+                        <tbody id="query-table-body" class="bg-white text-[18px]"></tbody>
                     </table>
                 </div>
             </div>
         </section>
     </main>
 
-    <!-- 頁腳 -->
-    <footer class="mt-10 text-gray-500 text-[16px]">
+    <!-- 頁腳 (包含隱藏的登入觸發按鈕) -->
+    <footer class="mt-10 mb-6 text-gray-500 text-[16px] flex items-center gap-2">
         &copy; 2024 鳳甲國中 | 系統維護：教務處
+        <button onclick="triggerManualLogin()" class="text-gray-300 hover:text-gray-500 transition" title="管理員登入">
+            <i class="fas fa-lock text-xs"></i>
+        </button>
     </footer>
 
-    <!-- 全域忙碌遮罩 -->
+    <!-- 全域元件 -->
     <div id="loading-mask" class="fixed inset-0 bg-black bg-opacity-40 z-50 hidden flex flex-col justify-center items-center">
         <div class="bg-white p-6 rounded-xl shadow-2xl flex flex-col items-center">
             <div class="loader mb-4" style="width: 50px; height: 50px; border-width: 5px;"></div>
@@ -251,130 +194,134 @@
             <div id="progress-text" class="text-blue-600 font-bold mt-2">0%</div>
         </div>
     </div>
-
-    <!-- 懸浮訊息 Toast -->
     <div id="toast" class="fixed top-10 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg text-white font-bold shadow-xl z-[60] hidden transition-opacity duration-300 pointer-events-none text-[18px]"></div>
 
     <script>
-        // ================= 初始化與全域變數 =================
+        // ================= 狀態管理 =================
         let isBusy = false;
         let progressInterval = null;
-        let pendingAction = null; // 暫存因為需要授權而中斷的動作
-        let tempAdminEmail = null; // 暫存 Google 登入的 Email
+        let pendingAction = null; 
 
         window.onload = function() {
             initSelectOptions();
             loadInitialData();
-            checkAdminStatus();
+            updateUIBySession();
         };
 
-        // ================= 雙認證邏輯 (Google + 密碼) =================
-        function parseJwt(token) {
-            try {
-                const base64Url = token.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-                    return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-                }).join(''));
-                return JSON.parse(jsonPayload);
-            } catch (e) { return null; }
+        // ================= 資安與授權模組 =================
+        
+        // 檢查本地是否擁有合法的 Session Token
+        function getSessionToken() {
+            return sessionStorage.getItem('adminSessionToken');
         }
 
-        function handleCredentialResponse(response) {
-            const payload = parseJwt(response.credential);
-            if(payload && payload.email) {
-                tempAdminEmail = payload.email;
-                
-                // 切換 Google 按鈕顯示狀態
-                document.getElementById('google-btn-container').classList.add('hidden');
-                document.getElementById('google-auth-success').classList.remove('hidden');
-                document.getElementById('auth-email-display').textContent = payload.email;
-                
-                showToast("success", "Google 驗證成功，請繼續輸入密碼");
-            }
-        }
-
-        function checkAdminStatus() {
-            const email = localStorage.getItem('adminEmail');
+        function updateUIBySession() {
+            const token = getSessionToken();
+            const email = sessionStorage.getItem('adminEmail');
             const badge = document.getElementById('admin-badge');
-            const emailText = document.getElementById('admin-email-text');
-            if(email) {
+            
+            if (token && email) {
                 badge.classList.remove('hidden');
-                emailText.textContent = email;
+                document.getElementById('admin-email-text').textContent = email;
             } else {
                 badge.classList.add('hidden');
             }
         }
 
-        function logoutAdmin() {
-            if(confirm('確定要登出管理員身分嗎？')) {
-                localStorage.removeItem('adminEmail');
-                localStorage.removeItem('adminPassword');
-                checkAdminStatus();
-                
-                // 呼叫 GIS API 撤銷自動登入狀態
-                if(window.google && google.accounts && google.accounts.id) {
-                    google.accounts.id.disableAutoSelect();
-                }
-                
-                // 恢復 Modal 初始狀態
-                document.getElementById('google-btn-container').classList.remove('hidden');
-                document.getElementById('google-auth-success').classList.add('hidden');
-                document.getElementById('admin-pwd-input').value = "";
-                document.getElementById('admin-pwd-input').type = "password";
-                document.getElementById('toggle-admin-eye').classList.replace("fa-eye-slash", "fa-eye");
-                tempAdminEmail = null;
-                
-                showToast("info", "已登出管理員身分");
+        // 觸發手動登入 (不帶行為)
+        function triggerManualLogin() {
+            if (getSessionToken()) {
+                showToast('info', '您已經是管理員狀態');
+                return;
             }
+            pendingAction = 'none';
+            document.getElementById('admin-auth-modal').classList.remove('hidden');
         }
 
+        // 取消登入
         function cancelAdminLogin() {
             document.getElementById('admin-auth-modal').classList.add('hidden');
             pendingAction = null;
         }
 
-        function confirmAdminLogin() {
-            const pwd = document.getElementById('admin-pwd-input').value;
-            // 嘗試讀取剛授權的 tempAdminEmail，或已經儲存的 Email
-            const emailToSave = tempAdminEmail || localStorage.getItem('adminEmail');
-
-            if (!emailToSave) {
-                showToast("error", "請先完成 Google 帳號授權");
-                return;
-            }
-            if (!pwd) {
-                showToast("error", "請輸入系統操作密碼");
-                return;
-            }
-
-            // 儲存至本地
-            localStorage.setItem('adminEmail', emailToSave);
-            localStorage.setItem('adminPassword', pwd);
+        // GIS Google 登入回調 (將 JWT 送到後端驗證)
+        async function onGoogleSignIn(response) {
+            const jwtCredential = response.credential;
             
-            document.getElementById('admin-auth-modal').classList.add('hidden');
-            checkAdminStatus();
+            // UI 切換到載入中
+            document.getElementById('google-btn-container').classList.add('hidden');
+            document.getElementById('auth-loading').classList.remove('hidden');
+            document.getElementById('auth-loading').classList.add('flex');
+
+            try {
+                // 將 JWT 傳給 GAS 後端驗證
+                const res = await callApi('verifyLogin', { idToken: jwtCredential });
+                
+                if (res.status === 'success') {
+                    // 將後端核發的短期 Session Token 存入 sessionStorage (關閉瀏覽器即失效)
+                    sessionStorage.setItem('adminSessionToken', res.sessionToken);
+                    sessionStorage.setItem('adminEmail', res.email);
+                    
+                    showToast('success', '身分驗證成功！');
+                    document.getElementById('admin-auth-modal').classList.add('hidden');
+                    updateUIBySession();
+
+                    // 如果有被中斷的動作，接續執行
+                    if (pendingAction === 'upload') handleUpload();
+                    else if (pendingAction === 'query') handleQuery();
+                    
+                } else {
+                    // 後端驗證失敗 (不在白名單)
+                    showToast('error', res.message || '授權失敗，無管理權限');
+                    forceRevokeFrontend();
+                }
+            } catch (err) {
+                showToast('error', '網路連線異常，請稍後再試');
+                forceRevokeFrontend();
+            } finally {
+                // 恢復 Modal 狀態
+                document.getElementById('google-btn-container').classList.remove('hidden');
+                document.getElementById('auth-loading').classList.add('hidden');
+                document.getElementById('auth-loading').classList.remove('flex');
+                pendingAction = null;
+            }
+        }
+
+        // 登出管理員 (伺服器端註銷 + 前端清除)
+        async function logoutAdmin() {
+            if(!confirm('確定要登出管理員身分嗎？')) return;
             
-            // 繼續執行的動作
-            if(pendingAction === 'upload') handleUpload();
-            else if(pendingAction === 'query') handleQuery();
-            pendingAction = null;
+            const token = getSessionToken();
+            if (token) {
+                // 告知伺服器作廢此 Token (不需等待完成即更新UI，提升體驗)
+                callApi('logout', { sessionToken: token }).catch(e=>console.log(e));
+            }
+            
+            forceRevokeFrontend();
+            showToast("info", "已登出管理員身分");
+        }
+
+        // 前端強制清除登入狀態
+        function forceRevokeFrontend() {
+            sessionStorage.removeItem('adminSessionToken');
+            sessionStorage.removeItem('adminEmail');
+            updateUIBySession();
+            // 呼叫 GIS API 撤銷自動登入與選擇狀態
+            if(window.google && google.accounts && google.accounts.id) {
+                google.accounts.id.disableAutoSelect();
+            }
         }
 
         // ================= 動作攔截器 =================
-        function initiateAction(action) {
+        function checkActionAuth(action) {
             const lastFourID = document.getElementById("lastFourID").value;
             
-            // 如果使用萬用碼，啟動雙重驗證
+            // 如果使用萬用碼，檢查是否有 Session Token
             if (lastFourID === "000000") {
-                const adminEmail = localStorage.getItem('adminEmail');
-                const adminPwd = localStorage.getItem('adminPassword');
-                
-                // 如果本地沒有完整的雙重憑證，就彈出 Modal
-                if (!adminEmail || !adminPwd) {
+                if (!getSessionToken()) {
                     pendingAction = action;
                     document.getElementById('admin-auth-modal').classList.remove('hidden');
-                    return;
+                    return; // 中斷當前流程，等待 Google 登入
                 }
             }
             
@@ -383,22 +330,7 @@
             else if(action === 'query') handleQuery();
         }
 
-        // ================= 核心功能與 API =================
-        function initSelectOptions() {
-            const classSelect = document.getElementById("classNum");
-            const seatSelect = document.getElementById("seatNum");
-
-            for (let i = 1; i <= 17; i++) {
-                let val = ("0" + i).slice(-2);
-                classSelect.add(new Option(val + " 班", val));
-            }
-
-            for (let j = 1; j <= 30; j++) {
-                let val = ("0" + j).slice(-2);
-                seatSelect.add(new Option(val + " 號", val));
-            }
-        }
-
+        // ================= 核心 API 通訊 =================
         async function callApi(action, payload = {}) {
             const bodyData = JSON.stringify({ action: action, ...payload });
             
@@ -410,23 +342,11 @@
                 });
                 const result = await response.json();
                 
-                // 後端要求強制重新授權 (Token過期、無白名單權限等)
+                // 後端防護機制：如果 Session 無效、過期，強制前端登出並要求重新選帳號
                 if (result.forceReauth) {
-                    localStorage.removeItem('adminEmail');
-                    localStorage.removeItem('adminPassword');
-                    checkAdminStatus();
-                    if(window.google) google.accounts.id.disableAutoSelect();
-                    
-                    // 恢復 Modal 初始狀態
-                    document.getElementById('google-btn-container').classList.remove('hidden');
-                    document.getElementById('google-auth-success').classList.add('hidden');
-                    document.getElementById('admin-pwd-input').value = "";
-                    document.getElementById('admin-pwd-input').type = "password";
-                    document.getElementById('toggle-admin-eye').classList.replace("fa-eye-slash", "fa-eye");
-                    tempAdminEmail = null;
-
-                    alert("⚠️ 雙重授權已失效或密碼錯誤！請重新進行驗證。");
-                    return { status: 'error', message: "請重新授權登入" };
+                    forceRevokeFrontend();
+                    alert("⚠️ 登入時效已過或權限變更，請重新進行 Google 驗證。");
+                    return { status: 'error', message: "請重新授權" };
                 }
                 return result;
             } catch (error) {
@@ -435,27 +355,29 @@
             }
         }
 
+        // ================= 資料初始化與表單 (維持原樣) =================
+        function initSelectOptions() {
+            const classSelect = document.getElementById("classNum");
+            const seatSelect = document.getElementById("seatNum");
+            for (let i = 1; i <= 17; i++) classSelect.add(new Option(("0" + i).slice(-2) + " 班", ("0" + i).slice(-2)));
+            for (let j = 1; j <= 30; j++) seatSelect.add(new Option(("0" + j).slice(-2) + " 號", ("0" + j).slice(-2)));
+        }
+
         async function loadInitialData() {
             try {
                 const response = await fetch(`${SCRIPT_URL}?action=getInitData`);
                 const data = await response.json();
-
                 if (data.status === 'success') {
                     document.getElementById('sample-image').src = data.imageUrl;
-                    
                     const reminderBox = document.getElementById('reminder-content');
                     reminderBox.innerHTML = ''; 
-                    
                     data.reminders.forEach(item => {
                         const div = document.createElement('div');
                         if (item.link) {
                             div.innerHTML = `<a href="${item.link}" target="_blank" class="inline-block bg-pink-500 hover:bg-pink-600 text-white text-[16px] px-3 py-1 rounded transition mt-1"><i class="fas fa-external-link-alt"></i> 證件照詳細說明</a>`;
                         } else {
-                            if (item.important) {
-                                div.className = "inline-block bg-red-600 text-white font-bold text-[16px] px-2 py-1 rounded mr-1 mb-1";
-                            } else {
-                                div.className = "text-gray-700 leading-relaxed block";
-                            }
+                            if (item.important) div.className = "inline-block bg-red-600 text-white font-bold text-[16px] px-2 py-1 rounded mr-1 mb-1";
+                            else div.className = "text-gray-700 leading-relaxed block";
                             div.textContent = item.text;
                         }
                         reminderBox.appendChild(div);
@@ -466,10 +388,8 @@
             }
         }
 
-        // ================= 表單動作 (上傳) =================
         async function handleUpload() {
             if (isBusy) return;
-
             const grade = document.getElementById("grade").value;
             const classNum = document.getElementById("classNum").value;
             const seatNum = document.getElementById("seatNum").value;
@@ -477,24 +397,16 @@
             const fileInput = document.getElementById("file");
 
             if (!grade || !classNum || !seatNum || !lastFourID || !fileInput.files[0]) {
-                showToast("error", "請確認所有欄位是否已填寫並選擇照片！");
-                return;
-            }
-
-            let adminEmail = null;
-            let adminPassword = null;
-            if (lastFourID === "000000") {
-                adminEmail = localStorage.getItem("adminEmail");
-                adminPassword = localStorage.getItem("adminPassword");
+                return showToast("error", "請確認所有欄位是否已填寫並選擇照片！");
             }
 
             setBusy(true, "照片上傳處理中...");
-
             const reader = new FileReader();
             reader.onload = async function(e) {
                 try {
                     const result = await callApi('upload', {
-                        grade, classNum, seatNum, lastFourID, fileData: e.target.result, adminEmail, adminPassword
+                        grade, classNum, seatNum, lastFourID, fileData: e.target.result,
+                        sessionToken: getSessionToken() // 帶入 Session Token
                     });
 
                     if (result.status === 'success') {
@@ -503,7 +415,6 @@
                         document.getElementById("file").value = "";
                     } else {
                         showResultBox(true, result.message, 'error');
-                        showToast("error", "操作失敗");
                     }
                 } catch (err) {
                     showResultBox(true, err.message, 'error');
@@ -514,25 +425,15 @@
             reader.readAsDataURL(fileInput.files[0]);
         }
 
-        // ================= 表單動作 (查詢) =================
         async function handleQuery() {
             if (isBusy) return;
-            
             const grade = document.getElementById("grade").value;
             const classNum = document.getElementById("classNum").value;
             const seatNum = document.getElementById("seatNum").value;
             const lastFourID = document.getElementById("lastFourID").value;
 
             if (!grade || !classNum || !seatNum || !lastFourID) {
-                showToast("error", "請輸入完整的年級、班級、座號與身分證後四碼！");
-                return;
-            }
-
-            let adminEmail = null;
-            let adminPassword = null;
-            if (lastFourID === "000000") {
-                adminEmail = localStorage.getItem("adminEmail");
-                adminPassword = localStorage.getItem("adminPassword");
+                return showToast("error", "請輸入完整的年級、班級、座號與身分證後四碼！");
             }
 
             setBusy(true, "查詢資料中...");
@@ -540,7 +441,8 @@
 
             try {
                 const result = await callApi('query', { 
-                    grade, classNum, seatNum, lastFourID, adminEmail, adminPassword 
+                    grade, classNum, seatNum, lastFourID,
+                    sessionToken: getSessionToken() // 帶入 Session Token
                 });
 
                 if (result.status === 'success') {
@@ -556,7 +458,7 @@
             }
         }
 
-        // ================= 畫面控制與動畫 =================
+        // ================= UI 輔助功能 =================
         function setBusy(state, text = "處理中...") {
             isBusy = state;
             const mask = document.getElementById('loading-mask');
@@ -565,20 +467,13 @@
 
             if (state) {
                 mask.classList.remove('hidden');
-                loadText.innerText = text;
-                progress.innerText = "0%";
-                
-                let p = 0;
-                clearInterval(progressInterval);
+                loadText.innerText = text; progress.innerText = "0%";
+                let p = 0; clearInterval(progressInterval);
                 progressInterval = setInterval(() => {
-                    if (p < 90) {
-                        p += Math.floor(Math.random() * 5) + 1;
-                        progress.innerText = p + "%";
-                    }
+                    if (p < 90) { p += Math.floor(Math.random() * 5) + 1; progress.innerText = p + "%"; }
                 }, 200);
             } else {
-                progress.innerText = "100%";
-                clearInterval(progressInterval);
+                progress.innerText = "100%"; clearInterval(progressInterval);
                 setTimeout(() => { mask.classList.add('hidden'); }, 300);
             }
         }
@@ -587,11 +482,9 @@
             const toast = document.getElementById('toast');
             toast.textContent = msg;
             toast.className = `fixed top-10 left-1/2 transform -translate-x-1/2 px-6 py-3 rounded-lg text-white font-bold shadow-xl z-[60] hidden transition-opacity duration-300 pointer-events-none text-[18px]`;
-            
             if (type === 'success') toast.classList.add('bg-green-600');
             else if (type === 'error') toast.classList.add('bg-red-600');
             else toast.classList.add('bg-blue-600');
-
             toast.classList.remove('hidden');
             setTimeout(() => { toast.classList.add('hidden'); }, 3000);
         }
@@ -599,19 +492,13 @@
         function showResultBox(show, text, type) {
             const area = document.getElementById('result-area');
             const box = document.getElementById('message-box');
-            
-            if (!show) {
-                area.classList.add('hidden');
-                return;
-            }
+            if (!show) { area.classList.add('hidden'); return; }
             area.classList.remove('hidden');
             box.innerHTML = text;
-            
             box.className = "p-4 rounded-lg text-[18px] font-bold text-center border-2 mb-4 ";
             if (type === 'success') box.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
             else if (type === 'error') box.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
             else box.classList.add('bg-blue-100', 'border-blue-500', 'text-blue-700');
-            
             area.scrollIntoView({ behavior: 'smooth' });
         }
 
@@ -620,8 +507,7 @@
             const tableContainer = document.getElementById('query-table-container');
             const tbody = document.getElementById('query-table-body');
             
-            area.classList.remove('hidden');
-            tableContainer.classList.remove('hidden');
+            area.classList.remove('hidden'); tableContainer.classList.remove('hidden');
             
             let statusClass = "text-gray-800";
             if (data.reviewStatus.includes("合格") && !data.reviewStatus.includes("不")) statusClass = "text-green-600 font-bold";
@@ -635,33 +521,17 @@
                     <td class="p-3 border">${data.name}</td>
                     <td class="p-3 border">${data.studentNumber}</td>
                     <td class="p-3 border ${statusClass}">${data.reviewStatus}</td>
-                </tr>
-            `;
-            
+                </tr>`;
             area.scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function toggleAdminPwdVisibility() {
-            const input = document.getElementById("admin-pwd-input");
-            const icon = document.getElementById("toggle-admin-eye");
-            if (input.type === "password") {
-                input.type = "text";
-                icon.classList.replace("fa-eye", "fa-eye-slash");
-            } else {
-                input.type = "password";
-                icon.classList.replace("fa-eye-slash", "fa-eye");
-            }
         }
 
         function toggleIDVisibility() {
             const input = document.getElementById("lastFourID");
             const icon = document.getElementById("toggle-eye");
             if (input.type === "password") {
-                input.type = "text";
-                icon.classList.replace("fa-eye", "fa-eye-slash");
+                input.type = "text"; icon.classList.replace("fa-eye", "fa-eye-slash");
             } else {
-                input.type = "password";
-                icon.classList.replace("fa-eye-slash", "fa-eye");
+                input.type = "password"; icon.classList.replace("fa-eye-slash", "fa-eye");
             }
         }
 
@@ -676,8 +546,7 @@
             document.getElementById("uploadForm").reset();
             document.getElementById("grade").selectedIndex = 0;
             document.getElementById("classNum").innerHTML = ""; 
-            initSelectOptions();
-            clearResult();
+            initSelectOptions(); clearResult();
         }
     </script>
 </body>
